@@ -1,0 +1,4 @@
+.DS_Store
+*.log
+GRADING_REPORT.md
+node_modules/
