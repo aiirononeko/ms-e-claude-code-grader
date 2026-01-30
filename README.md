@@ -97,11 +97,24 @@ cp -r .claude/agents/* ~/.claude/agents/
 
 ## 使い方
 
-採点対象のリポジトリに移動し、Claude Code 上で `/grade` を実行します。
+### 前提条件
+
+`gh` CLI（GitHub CLI）がインストールされ、認証済みであることを確認してください。
 
 ```bash
-cd /path/to/student-repo
+# インストール確認
+gh --version
 
+# 未認証の場合
+gh auth login
+```
+
+### 採点の実行
+
+1. 採点対象のリポジトリをClaude Codeで開きます。
+2. Claude Code 上で `/grade` を実行します:
+
+```bash
 # 対話モード
 > /grade
 
