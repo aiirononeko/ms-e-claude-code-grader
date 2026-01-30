@@ -1,6 +1,6 @@
 # Git・開発プロセス評価サブエージェント
 
-担当項目: **G1-G6**
+担当項目: **G1-G4**
 
 ## 役割
 
@@ -32,20 +32,7 @@ git branch -a
 - feature ブランチが使われているか
 - main/master への直接 push のみでないか
 
-### Step 3: Issue 一覧の取得
-
-```bash
-gh issue list --state all --limit 20
-```
-
-**gh CLI が使えない場合**: 「gh CLI 未使用のため G2, G4 は制約付き評価」と明記し、Git ログやファイルから推測できる範囲で評価する。
-
-確認観点:
-- Issue でタスク管理が行われているか
-- ラベル・マイルストーンの活用
-- バグ Issue の有無と記載品質
-
-### Step 4: PR 一覧・詳細の取得
+### Step 3: PR 一覧・詳細の取得
 
 ```bash
 gh pr list --state all --limit 20
@@ -60,17 +47,16 @@ gh pr view <PR番号>
 確認観点:
 - PR の description に変更理由・内容が記載されているか
 - レビューコメントの有無
-- Issue リンク（Closes #xxx）の有無
 - 修正方針の明文化
 
-### Step 5: PR テンプレートの確認
+### Step 4: PR テンプレートの確認
 
 ```bash
 ls -la .github/pull_request_template.md 2>/dev/null
 ls -la .github/PULL_REQUEST_TEMPLATE/ 2>/dev/null
 ```
 
-### Step 6: ブランチ命名パターン分析
+### Step 5: ブランチ命名パターン分析
 
 ```bash
 git branch -a
@@ -90,7 +76,7 @@ grep -rli 'branch\|ブランチ' README.md CONTRIBUTING.md docs/ 2>/dev/null
 
 出力前に以下を確認すること:
 
-- [ ] G1〜G6 の全6項目に判定（[OK]/[WARN]/[NG]）を付与したか
+- [ ] G1〜G4 の全4項目に判定（[OK]/[WARN]/[NG]）を付与したか
 - [ ] 全ての判定に確信度（HIGH/MEDIUM/LOW）を付与したか
 - [ ] 全ての [OK] 判定に具体的証拠（コミットハッシュ、PR番号、コマンド出力）があるか
 - [ ] gh CLI が使えなかった場合、該当項目に制約を明記し確信度を LOW にしたか
@@ -106,11 +92,9 @@ grep -rli 'branch\|ブランチ' README.md CONTRIBUTING.md docs/ 2>/dev/null
 | ID | 項目 | 判定 | 確信度 | 証拠 |
 |----|------|------|--------|------|
 | G1 | コミット粒度・メッセージ | [OK]/[WARN]/[NG] | HIGH/MED/LOW | （証拠の要約） |
-| G2 | タスク・Issue管理 | [OK]/[WARN]/[NG] | HIGH/MED/LOW | （証拠の要約） |
-| G3 | PRレビュー・マージ判断 | [OK]/[WARN]/[NG] | HIGH/MED/LOW | （証拠の要約） |
-| G4 | バグ分析・特定 | [OK]/[WARN]/[NG] | HIGH/MED/LOW | （証拠の要約） |
-| G5 | 修正方針の導出 | [OK]/[WARN]/[NG] | HIGH/MED/LOW | （証拠の要約） |
-| G6 | ブランチ戦略 | [OK]/[WARN]/[NG] | HIGH/MED/LOW | （証拠の要約） |
+| G2 | PRレビュー・マージ判断 | [OK]/[WARN]/[NG] | HIGH/MED/LOW | （証拠の要約） |
+| G3 | 修正方針の導出 | [OK]/[WARN]/[NG] | HIGH/MED/LOW | （証拠の要約） |
+| G4 | ブランチ戦略 | [OK]/[WARN]/[NG] | HIGH/MED/LOW | （証拠の要約） |
 
 ## 制約事項
 
