@@ -1,42 +1,209 @@
-# Student Repository Grader
+# 受講生リポジトリ採点オーケストレーター
 
-Description: ベストプラクティスに基づき、サブエージェントを用いて「Git」「コード」「ドキュメント」を独立して採点し、統合レポートを作成します。
+Description: 4つの評価サブエージェント + 検証サブエージェントを順に起動し、28項目の採点レポートを生成します。
 
-## Guidelines
-- メインエージェントはソースコードやGitログを直接読み込まないでください（コンテキスト汚染防止）。
-- 各フェーズで必ず **"Use a sub-agent"** を実行してください。
-- 評価基準ファイル: `~/.claude/resources/evaluation_rubric.md`
+## 重要なルール
 
-## Steps
+- メインエージェント（このコマンド）はソースコード・Gitログを**直接読み込まない**こと（コンテキスト汚染防止）。
+- 各フェーズで必ずサブエージェントを使用すること。
+- 全判定に証拠（file:line, commit hash, コマンド出力）を必須とする。
+- 評価基準: `~/.claude/resources/evaluation_rubric.md`
 
-1. **Phase 1: Git Audit (Sub-agent)**
-   - Use a sub-agent to analyze Git history.
-   - **Instruction for Sub-agent:**
-     1. Read the "Git / バージョン管理" section of the rubric file.
-     2. Run `git log --oneline -n 30` to check commit granularity and messages.
-     3. Run `git branch -a` to check branch naming.
-     4. Check if PR templates exist (look for `.github/pull_request_template.md`).
-     5. Output a concise Markdown summary focusing ONLY on Git criteria.
+---
 
-2. **Phase 2: Code Quality & Architecture (Sub-agent)**
-   - Use a sub-agent to analyze code quality.
-   - **Instruction for Sub-agent:**
-     1. Read the "実装・機能要件" and "コード品質・可読性" sections of the rubric.
-     2. Explore the file structure using `ls -R` (ignore `node_modules`).
-     3. Select and read 2-3 representative source files (e.g., from `src/`).
-     4. Check for: Naming conventions, Error handling (try-catch), and Directory structure.
-     5. Output a concise Markdown summary focusing ONLY on Code criteria.
+## Phase 0: プリフライトチェック
 
-3. **Phase 3: Documentation & Testing (Sub-agent)**
-   - Use a sub-agent to check docs and tests.
-   - **Instruction for Sub-agent:**
-     1. Read the "品質保証" and "ドキュメンテーション" sections of the rubric.
-     2. Check for `README.md` and test files (`.test.ts`, `.spec.js`, etc.).
-     3. Check for CI configs (`.github/workflows`).
-     4. Output a concise Markdown summary focusing on Docs/Tests.
+サブエージェントを起動する前に、メインエージェントが以下を確認する。
 
-4. **Phase 4: Final Report Generation**
-   - As the Main Agent, read the summaries from Phase 1, 2, and 3.
-   - Compile a final grading report strictly following the "採点レポートの出力形式" in the rubric.
-   - Save the report to `GRADING_REPORT.md` in the current directory.
-   - Display the summary table to the user.
+1. **カレントディレクトリの確認**: 受講生リポジトリのルートにいることを確認する。
+   ```bash
+   ls .git
+   ```
+   `.git` が存在しない場合、ユーザーに対象リポジトリへの移動を促して終了する。
+
+2. **gh CLI の可用性チェック**:
+   ```bash
+   gh auth status 2>&1
+   ```
+   使用可能かどうかを記録する。使用不可の場合、Phase 1・4 の該当項目に制約が生じることを記録する。
+
+3. **結果の記録**: 以下の情報をメモする。
+   - リポジトリパス
+   - gh CLI 可用性（available / unavailable）
+
+---
+
+## Phase 1: Git・開発プロセス評価（サブエージェント）
+
+サブエージェントを起動し、以下の指示を与える:
+
+> `~/.claude/agents/git_process.md` を読み、その指示に従って G1-G6 の評価を実行してください。
+> 評価基準は `~/.claude/resources/evaluation_rubric.md` の「カテゴリ A」を参照してください。
+> gh CLI の可用性: {Phase 0 の結果}
+> 出力は git_process.md に定義されたフォーマットに従ってください。
+
+サブエージェントの出力を **Git評価結果** として保持する。
+
+---
+
+## Phase 2: コード品質・設計評価（サブエージェント）
+
+サブエージェントを起動し、以下の指示を与える:
+
+> `~/.claude/agents/code_quality.md` を読み、その指示に従って C1-C10 の評価を実行してください。
+> 評価基準は `~/.claude/resources/evaluation_rubric.md` の「カテゴリ B」を参照してください。
+> 出力は code_quality.md に定義されたフォーマットに従ってください。
+
+サブエージェントの出力を **コード品質評価結果** として保持する。
+
+---
+
+## Phase 3: テスト・CI/CD評価（サブエージェント）
+
+サブエージェントを起動し、以下の指示を与える:
+
+> `~/.claude/agents/testing_cicd.md` を読み、その指示に従って T1-T6 の評価を実行してください。
+> 評価基準は `~/.claude/resources/evaluation_rubric.md` の「カテゴリ C」を参照してください。
+> 出力は testing_cicd.md に定義されたフォーマットに従ってください。
+
+サブエージェントの出力を **テスト評価結果** として保持する。
+
+---
+
+## Phase 4: ドキュメント・コミュニケーション評価（サブエージェント）
+
+サブエージェントを起動し、以下の指示を与える:
+
+> `~/.claude/agents/docs_communication.md` を読み、その指示に従って D1-D6 の評価を実行してください。
+> 評価基準は `~/.claude/resources/evaluation_rubric.md` の「カテゴリ D」を参照してください。
+> gh CLI の可用性: {Phase 0 の結果}
+> 出力は docs_communication.md に定義されたフォーマットに従ってください。
+
+サブエージェントの出力を **ドキュメント評価結果** として保持する。
+
+---
+
+## Phase 5: 検証（サブエージェント）
+
+サブエージェントを起動し、以下の指示を与える:
+
+> `~/.claude/agents/verification.md` を読み、その指示に従って検証を実行してください。
+> 以下の4つの評価結果を検証してください:
+>
+> --- Git評価結果 ---
+> {Phase 1 の出力}
+>
+> --- コード品質評価結果 ---
+> {Phase 2 の出力}
+>
+> --- テスト評価結果 ---
+> {Phase 3 の出力}
+>
+> --- ドキュメント評価結果 ---
+> {Phase 4 の出力}
+>
+> gh CLI の可用性: {Phase 0 の結果}
+> 出力は verification.md に定義されたフォーマットに従ってください。
+
+検証結果を確認し、**調整推奨** がある場合は該当項目の判定を修正する。
+
+---
+
+## Phase 6: 最終レポート生成
+
+メインエージェントが Phase 1-5 の結果を統合し、`GRADING_REPORT.md` を生成する。
+
+### レポート構造
+
+```markdown
+# 採点レポート
+
+- **生成日時**: YYYY-MM-DD HH:MM
+- **対象リポジトリ**: {リポジトリパス}
+- **検出言語・FW**: {Phase 2 で検出された情報}
+- **gh CLI**: {available / unavailable}
+
+---
+
+## サマリー
+
+| カテゴリ | OK | WARN | NG | 要確認 |
+|---------|----:|-----:|----:|-------:|
+| Git・開発プロセス (G1-G6) | X | X | X | X |
+| コード品質・設計 (C1-C10) | X | X | X | X |
+| テスト・CI/CD (T1-T6) | X | X | X | X |
+| ドキュメント (D1-D6) | X | X | X | X |
+| **合計 (28項目)** | **X** | **X** | **X** | **X** |
+
+※「要確認」= 確信度 MEDIUM/LOW の項目数
+
+---
+
+## 詳細評価
+
+### Git・開発プロセス
+
+| ID | 項目 | 判定 | 確信度 | 証拠 |
+|----|------|------|--------|------|
+| G1 | コミット粒度・メッセージ | ... | HIGH/MED/LOW | ... |
+| G2 | タスク・Issue管理 | ... | ... | ... |
+| G3 | PRレビュー・マージ判断 | ... | ... | ... |
+| G4 | バグ分析・特定 | ... | ... | ... |
+| G5 | 修正方針の導出 | ... | ... | ... |
+| G6 | ブランチ戦略 | ... | ... | ... |
+
+### コード品質・設計
+
+| ID | 項目 | 判定 | 確信度 | 証拠 |
+|----|------|------|--------|------|
+| C1 | 入力値検証 | ... | ... | ... |
+| C2 | 例外処理 | ... | ... | ... |
+| C3 | 静的解析ツール | ... | ... | ... |
+| C4 | 命名規則 | ... | ... | ... |
+| C5 | ディレクトリ構造 | ... | ... | ... |
+| C6 | DRY原則・単一責任 | ... | ... | ... |
+| C7 | ログ設計 | ... | ... | ... |
+| C8 | セキュリティ対策 | ... | ... | ... |
+| C9 | パフォーマンス・キャッシュ | ... | ... | ... |
+| C10 | アーキテクチャ | ... | ... | ... |
+
+### テスト・CI/CD
+
+| ID | 項目 | 判定 | 確信度 | 証拠 |
+|----|------|------|--------|------|
+| T1 | テスト設計書 | ... | ... | ... |
+| T2 | テストケース網羅性 | ... | ... | ... |
+| T3 | テストコード実装 | ... | ... | ... |
+| T4 | 依存性管理（Mock） | ... | ... | ... |
+| T5 | CI/CD実装 | ... | ... | ... |
+| T6 | カバレッジ管理 | ... | ... | ... |
+
+### ドキュメント・コミュニケーション
+
+| ID | 項目 | 判定 | 確信度 | 証拠 |
+|----|------|------|--------|------|
+| D1 | コメントの質 | ... | ... | ... |
+| D2 | READMEの充実度 | ... | ... | ... |
+| D3 | 設計書の整備 | ... | ... | ... |
+| D4 | PR記述の適切さ | ... | ... | ... |
+| D5 | 運用・デプロイ設計 | ... | ... | ... |
+| D6 | スコープ・MVP定義 | ... | ... | ... |
+
+---
+
+## 検証結果
+
+{Phase 5 の検証結果を転記}
+
+---
+
+## 制約事項
+
+（gh CLI 未使用、テストファイル不在など、評価に制約があった項目を列挙）
+```
+
+### 最終アクション
+
+1. 上記フォーマットで `GRADING_REPORT.md` をカレントディレクトリに保存する。
+2. サマリーテーブルをユーザーに表示する。
+3. 確信度が LOW の項目があれば、その旨をユーザーに伝える。
