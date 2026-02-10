@@ -8,6 +8,15 @@ Section 6（チーム開発）の課題リポジトリを、教材で教えた�
 レビューガイドラインは `~/.claude/resources/review_guidelines.md` を参照すること。
 教材リファレンスは `~/.claude/resources/sections/s6/materials.md` を参照すること。
 
+## レビュー方針
+
+**簡潔さを最優先** とする。教材の必須要件に対して「できた/できていない」を明確に伝えることが目的。
+
+- 5観点（ブランチ/PR/Issue/レビュー/規約）を ✅/❌ の達成状況で示す
+- 各項目は1-2行で簡潔に
+- **コード例は原則不要**
+- 証拠（PR番号、コミットハッシュ、file:line）は必須
+
 ## 探索ステップ
 
 ### Step 1: 教材の確認
@@ -16,7 +25,9 @@ Section 6（チーム開発）の課題リポジトリを、教材で教えた�
 cat ~/.claude/resources/sections/s6/materials.md 2>/dev/null
 ```
 
-### Step 2: Git 運用の詳細分析
+### Step 2: Git 運用・PR・Issue の一括収集
+
+以下のコマンドを実行し、データを収集する:
 
 ```bash
 # コミット履歴
@@ -25,73 +36,42 @@ git log --oneline --all --graph -n 50
 # ブランチ一覧
 git branch -a
 
-# コミッター一覧（チーム開発の証跡）
+# コミッター一覧
 git shortlog -sn --all
 
-# マージコミットの確認
+# マージコミット
 git log --merges --oneline -n 20
 ```
-
-### Step 3: PR / Issue の分析
 
 ```bash
 # PR 一覧
 gh pr list --state all --limit 30
 
-# 代表的な PR の詳細（最大3件）
-# gh pr view <番号> で確認
+# Issue 一覧
+gh issue list --state all --limit 30
 ```
 
-PR がある場合、以下を確認:
-- description の充実度
-- レビューコメントの有無と質
-- Approve / Request changes の使い分け
-- Issue との紐付け
-
-### Step 4: コラボレーション基盤の確認
+### Step 3: コラボレーション基盤の確認
 
 ```bash
-# PR テンプレート
-ls .github/pull_request_template.md .github/PULL_REQUEST_TEMPLATE/ 2>/dev/null
+# テンプレート・ガイド
+ls .github/pull_request_template.md .github/PULL_REQUEST_TEMPLATE/ .github/ISSUE_TEMPLATE/ CONTRIBUTING.md README.md 2>/dev/null
 
-# Issue テンプレート
-ls .github/ISSUE_TEMPLATE/ 2>/dev/null
-
-# CONTRIBUTING ガイド
-ls CONTRIBUTING.md 2>/dev/null
-
-# ブランチ保護ルール（gh CLI）
-gh api repos/{owner}/{repo}/branches/main/protection 2>/dev/null | head -20
+# ESLint等
+ls .eslintrc* .prettierrc* biome.json 2>/dev/null
 ```
 
-### Step 5: ソースコードの読取と分析
+### Step 4: 5観点の達成判定
 
-#### 5a: ブランチ戦略
-- ブランチ命名規則の一貫性（`feature/`, `fix/`, `hotfix/` 等）
-- ブランチの粒度（1機能1ブランチ）
-- main / develop の使い分け
-- 戦略のドキュメント化
+Step 1-3 の結果をもとに、以下の5観点を判定する。深掘りしすぎず、達成/未達成を判定することに集中する。
 
-#### 5b: PR プロセス
-- PR の粒度（レビューしやすいサイズか）
-- description のテンプレート活用
-- レビュー指摘への対応
-- マージ戦略（squash, merge, rebase）
-
-#### 5c: Issue 駆動開発
-- Issue の作成・管理
-- Issue と PR の紐付け
-- ラベルの活用
-
-#### 5d: コードレビュー文化
-- レビューコメントの建設的さ
-- レビュー指摘の具体性
-- セルフレビューの痕跡
-
-#### 5e: チーム規約
-- CONTRIBUTING.md の有無と内容
-- コーディング規約の文書化
-- 開発フローの明文化
+| 観点 | 確認内容 |
+|------|----------|
+| ブランチ戦略 | feature ブランチの使用、命名規則、mainへの直接コミット有無 |
+| PR プロセス | PR の存在、description、セルフレビューの痕跡 |
+| Issue 駆動開発 | Issue の作成、PRとの紐付け、ラベル活用 |
+| コードレビュー文化 | レビューコメント、Approve/Request changes の使用 |
+| チーム規約 | CONTRIBUTING.md、ESLint、コミットメッセージ規約 |
 
 ## 出力フォーマット
 
@@ -101,30 +81,29 @@ gh api repos/{owner}/{repo}/branches/main/protection 2>/dev/null | head -20
 ## 教材参照状況
 - **教材**: {設定済み / 未設定}
 
-## セクション固有の確認事項
+## 達成状況サマリー
 
-### ブランチ戦略
-- **良い点**: （コミットハッシュ・ブランチ名等の証拠付き）
-- **改善提案**: （具体的な証拠付き、現状→提案→理由）
+| 観点 | 状況 | 概要 |
+|------|------|------|
+| ブランチ戦略 | ✅ or ❌ | {1行の説明} |
+| PR プロセス | ✅ or ❌ | {1行の説明} |
+| Issue 駆動開発 | ✅ or ❌ | {1行の説明} |
+| コードレビュー文化 | ✅ or ❌ | {1行の説明} |
+| チーム規約 | ✅ or ❌ | {1行の説明} |
 
-### PR プロセス
-- **良い点**: （PR番号等の証拠付き）
-- **改善提案**: （PR番号等の証拠付き、現状→提案→理由）
+## 詳細（要改善項目のみ）
 
-### Issue 駆動開発
-- **良い点**: （Issue番号等の証拠付き）
-- **改善提案**: （具体的な証拠付き、現状→提案→理由）
+❌ の項目について、それぞれ2-3行で:
+- **現状**: 何が足りないか
+- **教材要件**: 教材のどこで要求されているか（materials.md の行番号等）
+- **推奨アクション**: 何をすればよいか
 
-### コードレビュー文化
-- **良い点**: （PR番号・コメント等の証拠付き）
-- **改善提案**: （具体的な証拠付き、現状→提案→理由）
+## ✅ の項目の補足
 
-### チーム規約
-- **良い点**: （file:line 参照付き）
-- **改善提案**: （file:line 参照付き、現状→提案→理由）
+良い点について各1行で補足（省略可）
 
 ## 参考リソース
-- （Git運用・チーム開発の参考URL）
+- {URL} — {1行の説明}
 ```
 
 ## 自己検証チェックリスト
@@ -133,5 +112,5 @@ gh api repos/{owner}/{repo}/branches/main/protection 2>/dev/null | head -20
 - [ ] ブランチ戦略・PR・Issue・レビュー・規約の5観点でレビューしたか
 - [ ] gh CLI が使えない場合、制約として明記したか
 - [ ] 全ての指摘に証拠（PR番号、コミットハッシュ、file:line）があるか
-- [ ] 良い点と改善提案の両方を含んでいるか
 - [ ] 日本語で出力しているか
+- [ ] **出力が簡潔か（各項目1-2行に収まっているか）**
