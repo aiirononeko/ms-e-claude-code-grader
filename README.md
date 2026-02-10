@@ -47,12 +47,16 @@ gh auth login  # 未認証の場合
 git clone https://github.com/aiirononeko/ms-e-claude-code-grader.git
 cd ms-e-claude-code-grader
 
-# Claude Code のグローバル設定にコピー
-mkdir -p ~/.claude/commands ~/.claude/resources ~/.claude/agents
-cp -r .claude/commands/* ~/.claude/commands/
-cp -r .claude/resources/* ~/.claude/resources/
-cp -r .claude/agents/* ~/.claude/agents/
+# セットアップスクリプトを実行（シンボリックリンクを作成）
+./setup.sh
 ```
+
+このスクリプトは `~/.claude/` 配下に**ファイル単位で**シンボリックリンクを作成します。
+
+**既存のコマンド/スキルと共存できます：**
+- 既存の個人用ファイルはそのまま保持されます
+- このツールのファイルだけがシンボリックリンクとして追加されます
+- `~/.claude/commands/` に個人用コマンドがあっても問題ありません
 
 ## 使い方
 
@@ -73,6 +77,18 @@ claude -p "/grade"
 claude -p "/review-s3"
 ```
 
+## 更新方法
+
+このリポジトリで最新版を取得し、セットアップスクリプトを再実行します。
+
+```bash
+cd ms-e-claude-code-grader
+git pull
+./setup.sh
+```
+
+既存のシンボリックリンクは自動的に更新され、新規ファイルがあれば追加されます。個人用ファイルはそのまま保持されます。
+
 ## カスタマイズ
 
 | 対象 | ファイル |
@@ -87,3 +103,41 @@ claude -p "/review-s3"
 - `gh` CLI が使えない環境でも動作しますが、PR・Issue 関連の評価は制約付きになります。
 - 対象言語は TypeScript を中心に Python・Ruby にも対応しています。
 - `GRADING_REPORT.md` / `REVIEW_REPORT.md` はリポジトリにコミットされません（`.gitignore` 済み）。
+
+## トラブルシューティング
+
+### スラッシュコマンドが認識されない
+
+```bash
+# シンボリックリンクの確認
+ls -la ~/.claude/commands
+
+# セットアップを再実行
+cd ms-e-claude-code-grader
+./setup.sh
+```
+
+### 古いバージョンが動いている
+
+Claude Code を再起動してください。
+
+```bash
+# Claude Code を再起動
+# または、新しいターミナルで実行
+```
+
+### このツールのファイルだけを削除したい
+
+```bash
+# このツールが作成したシンボリックリンクだけを削除
+cd ~/.claude/commands
+ls -la | grep '\->' | grep 'ms-e-claude-code-grader' | awk '{print $9}' | xargs rm
+
+cd ~/.claude/agents
+ls -la | grep '\->' | grep 'ms-e-claude-code-grader' | awk '{print $9}' | xargs rm
+
+cd ~/.claude/resources
+# 必要に応じて resources/ 配下も同様に
+```
+
+個人用ファイル（実体）は削除されません。
